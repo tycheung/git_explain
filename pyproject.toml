@@ -1,0 +1,38 @@
+[project]
+name = "git-explain"
+version = "0.1.0"
+description = "Setup a local LLM on top of any repo so you can ask questions about it"
+authors = [
+    {name = "Tung Cheung",email = "tungycheung@gmail.com"}
+]
+license = {text = "Apache2.0"}
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "flask (>=3.1.0,<4.0.0)",
+    "gitpython (>=3.1.44,<4.0.0)",
+    "faiss-cpu (>=1.10.0,<2.0.0)",
+    "numpy (>=2.2.4,<3.0.0)",
+    "torch (>=2.6.0,<3.0.0)",
+    "transformers (>=4.51.2,<5.0.0)",
+    "sentence-transformers (>=4.0.2,<5.0.0)",
+    "huggingface-hub (>=0.30.2,<0.31.0)",
+    "llama-cpp-python (>=0.3.8,<0.4.0)",
+    "tqdm (>=4.67.1,<5.0.0)",
+    "pyinstaller (>=6.12.0,<7.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "pywebview (>=5.4,<6.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+black = "^25.1.0"
+isort = "^6.0.1"
+mypy = "^1.15.0"
+

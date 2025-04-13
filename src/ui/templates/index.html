@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository Analyzer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Dark Mode Toggle -->
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+        </button>
+        
+        <header>
+            <h1>GitHub Repository Analyzer</h1>
+            <p>Ask questions about a GitHub repository</p>
+            
+            <!-- System Status Indicators -->
+            <div class="status-indicators">
+                <div id="vectorizer-status" class="status-badge">
+                    <span class="icon">🔍</span>
+                    <span class="label">Vectorizer:</span>
+                    <span class="value">Checking...</span>
+                </div>
+                <div id="llm-status" class="status-badge">
+                    <span class="icon">🧠</span>
+                    <span class="label">LLM:</span>
+                    <span class="value">Checking...</span>
+                </div>
+                <button id="setup-btn" class="action-button" style="display: none;">Initial Setup</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="repo-section">
+                <h2>Repository</h2>
+                
+                <!-- GitHub Authentication Section -->
+                <div id="github-auth" class="github-auth">
+                    <div class="auth-toggle">
+                        <label for="use-github-api" class="checkbox-label">
+                            <input type="checkbox" id="use-github-api">
+                            Use GitHub API (recommended)
+                        </label>
+                        <div id="auth-status" class="auth-status">Not authenticated</div>
+                    </div>
+                    
+                    <div id="auth-form" class="auth-form" style="display: none;">
+                        <div class="input-group">
+                            <input type="text" id="github-token" placeholder="Enter GitHub personal access token" autocomplete="off">
+                            <button id="auth-btn">Authenticate</button>
+                        </div>
+                        <div class="auth-info">
+                            <small>Using the GitHub API allows you to access private repositories and provides better repository information.</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="repo-url" placeholder="Enter GitHub repository URL (e.g., https://github.com/username/repo)">
+                    <button id="clone-btn">Clone & Analyze Repository</button>
+                </div>
+                <div id="repo-status" class="status"></div>
+                
+                <div class="loading-container" id="repo-loading" style="display: none;">
+                    <div class="loading-bar">
+                        <div class="loading-progress" id="repo-progress"></div>
+                    </div>
+                    <div class="loading-text">Processing repository...</div>
+                </div>
+            </div>
+            
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h2>Chat</h2>
+                    
+                    <!-- Feature Toggles -->
+                    <div class="feature-toggles">
+                        <button id="toggle-code-structure" class="feature-toggle" title="Show Code Structure">
+                            <i class="fas fa-folder-tree"></i>
+                        </button>
+                        <button id="visualize-code" class="feature-toggle" title="Visualize Code Dependencies">
+                            <i class="fas fa-diagram-project"></i>
+                        </button>
+                        <button id="clear-chat" class="feature-toggle" title="Clear Current Chat">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Search Settings Panel -->
+                <div class="search-settings">
+                    <div class="search-setting">
+                        <label for="hybrid-search" class="tooltip-container checkbox-label">
+                            <input type="checkbox" id="hybrid-search" checked>
+                            <span class="search-label-text">Use Hybrid Search</span>
+                            <span class="tooltip">Combines semantic search with keyword search for better results</span>
+                        </label>
+                    </div>
+                    <div class="search-setting">
+                        <label for="semantic-weight" class="tooltip-container">
+                            <span>Semantic Weight: <span id="semantic-weight-value">70%</span></span>
+                            <input type="range" id="semantic-weight" min="0" max="100" value="70">
+                            <span class="tooltip">Balance between semantic search (higher values) and keyword search (lower values)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Code Structure Panel (hidden by default) -->
+                <div id="code-structure-panel" class="side-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>Code Structure</h3>
+                        <button id="close-structure" class="close-panel">×</button>
+                    </div>
+                    <div id="structure-content" class="panel-content">
+                        <div class="structure-loading">
+                            Loading code structure...
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="chat-container">
+                    <div id="messages" class="messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>Welcome to the GitHub Repository Analyzer. Clone a repository to ask questions about the code.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-area">
+                        <textarea id="question-input" placeholder="Ask a question about the repository..." disabled></textarea>
+                        <button id="ask-btn" disabled>Ask</button>
+                    </div>
+                    
+                    <!-- Enhanced Thinking Indicator -->
+                    <div class="loading-container" id="thinking-container" style="display: none;">
+                        <div class="thinking-header">
+                            <div class="thinking-indicator">
+                                <div class="dot dot1"></div>
+                                <div class="dot dot2"></div>
+                                <div class="dot dot3"></div>
+                            </div>
+                            <div class="thinking-title">Processing your question...</div>
+                        </div>
+                        
+                        <div class="thinking-details">
+                            <div class="thinking-step active" id="thinking-step-1">
+                                <div class="step-icon"><i class="fas fa-search"></i></div>
+                                <div class="step-content">
+                                    <div class="step-title">Finding relevant code</div>
+                                    <div class="step-description">Searching for code that answers your question</div>
+                                </div>
+                                <div class="step-status"><i class="fas fa-spinner fa-spin"></i></div>
+                            </div>
+                            
+                            <div class="thinking-step" id="thinking-step-2">
+                                <div class="step-icon"><i class="fas fa-code"></i></div>
+                                <div class="step-content">
+                                    <div class="step-title">Analyzing context</div>
+                                    <div class="step-description">Understanding the code structure and relationships</div>
+                                </div>
+                                <div class="step-status"></div>
+                            </div>
+                            
+                            <div class="thinking-step" id="thinking-step-3">
+                                <div class="step-icon"><i class="fas fa-brain"></i></div>
+                                <div class="step-content">
+                                    <div class="step-title">Generating response</div>
+                                    <div class="step-description">Creating a detailed answer to your question</div>
+                                </div>
+                                <div class="step-status"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="thinking-footer">
+                            <div class="thinking-time">Time elapsed: <span id="thinking-time">0s</span></div>
+                            <div class="thinking-message" id="thinking-message">Starting processing...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="loading-container" id="model-loading" style="display: none;">
+                        <div class="loading-bar">
+                            <div class="loading-progress" id="model-progress"></div>
+                        </div>
+                        <div class="loading-text">Preparing model...</div>
+                        <div class="progress-percent" id="model-percent">0%</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>GitHub Repository Analyzer &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

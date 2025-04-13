@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Dependency Visualization - GitHub Repository Analyzer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <link rel="stylesheet" href="/static/css/visualization.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Dark Mode Toggle -->
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+        </button>
+       
+        <header>
+            <h1>Code Dependency Visualization</h1>
+            <p>Visualize code dependencies for your repository</p>
+            <div class="back-link">
+                <a href="/" class="btn-link"><i class="fas fa-arrow-left"></i> Back to Analyzer</a>
+            </div>
+        </header>
+       
+        <main>
+            <div class="visualization-container">
+                <div class="visualization-controls">
+                    <div class="viz-selector">
+                        <label for="visualization-type">Visualization Type:</label>
+                        <select id="visualization-type">
+                            <option value="dependency-graph">Dependency Graph</option>
+                            <option value="module-tree">Module Tree</option>
+                            <option value="file-size">File Size Treemap</option>
+                        </select>
+                    </div>
+                   
+                    <div class="viz-options">
+                        <label>
+                            <input type="checkbox" id="show-external-deps" checked>
+                            Show External Dependencies
+                        </label>
+                       
+                        <label>
+                            <input type="checkbox" id="group-by-module" checked>
+                            Group by Module
+                        </label>
+                        
+                        <button id="collapse-all-btn" class="control-btn" title="Collapse all expanded modules">
+                            <i class="fas fa-compress-alt"></i> Collapse All
+                        </button>
+                    </div>
+                   
+                    <div class="viz-search">
+                        <input type="text" id="search-module" placeholder="Search for a module...">
+                        <button id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+               
+                <div class="visualization-content">
+                    <div id="visualization-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading visualization data...</p>
+                    </div>
+                   
+                    <div id="visualization"></div>
+                   
+                    <div id="visualization-info" class="hidden">
+                        <h3>Selected Node: <span id="selected-node-name">None</span></h3>
+                        <div id="node-details">
+                            <p>Click on a node to see details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+       
+        <footer>
+            <p>GitHub Repository Analyzer &copy; 2025</p>
+        </footer>
+    </div>
+   
+    <script src="/static/js/visualization.js"></script>
+</body>
+</html>

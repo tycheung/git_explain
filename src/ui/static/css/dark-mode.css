@@ -1,0 +1,293 @@
+/* Dark Mode Styles */
+:root {
+    /* Default light mode variables */
+    --primary-color: #2563eb;
+    --primary-color-rgb: 37, 99, 235;
+    --primary-dark: #1d4ed8;
+    --secondary-color: #64748b;
+    --background-color: #f8fafc;
+    --surface-color: #ffffff;
+    --error-color: #ef4444;
+    --success-color: #22c55e;
+    --warning-color: #f59e0b;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --code-bg: #1e293b;
+    --code-color: #f8fafc;
+    --chat-bg: #f8fafc;
+    --tooltip-bg: #1e293b;
+    --tooltip-text: #ffffff;
+    --text-shadow-color: #ffffff;
+    --message-user-bg: #2563eb;
+    --message-user-color: white;
+    --message-assistant-bg: #e2e8f0;
+    --message-assistant-color: #1e293b;
+    --message-system-bg: #f1f5f9;
+    --message-system-color: #64748b;
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+    --primary-color: #3b82f6;
+    --primary-color-rgb: 59, 130, 246;
+    --primary-dark: #2563eb;
+    --secondary-color: #94a3b8;
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --error-color: #f87171;
+    --success-color: #4ade80;
+    --warning-color: #fbbf24;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+    --code-bg: #0f172a;
+    --code-color: #e2e8f0;
+    --chat-bg: #1e293b;
+    --tooltip-bg: #f1f5f9;
+    --tooltip-text: #0f172a;
+    --text-shadow-color: #0f172a;
+    --message-user-bg: #3b82f6;
+    --message-user-color: white;
+    --message-assistant-bg: #334155;
+    --message-assistant-color: #f1f5f9;
+    --message-system-bg: rgba(100, 116, 139, 0.1);
+    --message-system-color: #cbd5e1;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--surface-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Apply dark mode to body, respecting OS preferences */
+body {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode for components */
+.repo-section, .chat-section {
+    background-color: var(--surface-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.messages {
+    background-color: var(--chat-bg);
+    border-color: var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Enhanced message styling for light and dark mode */
+.message.user {
+    background-color: var(--message-user-bg);
+    color: var(--message-user-color);
+    float: right;
+    clear: both;
+    border-top-right-radius: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.message.assistant {
+    background-color: var(--message-assistant-bg);
+    color: var(--message-assistant-color);
+    float: left;
+    clear: both;
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.message.system {
+    background-color: var(--message-system-bg);
+    color: var(--message-system-color);
+    width: 100%;
+    clear: both;
+    border-left: 3px solid var(--secondary-color);
+}
+
+input, textarea {
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--primary-color);
+}
+
+.message-content pre {
+    background-color: var(--code-bg);
+    color: var(--code-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.message-content code {
+    background-color: rgba(100, 116, 139, 0.1);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+/* Status badge dark mode styles */
+.status-badge {
+    background-color: var(--surface-color);
+    transition: background-color 0.3s ease;
+}
+
+[data-theme="dark"] .status-badge.not-found {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .status-badge.loading {
+    background-color: rgba(245, 158, 11, 0.2);
+}
+
+[data-theme="dark"] .status-badge.ready {
+    background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Fix tooltip styling for dark mode */
+.tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-text);
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    z-index: 1;
+    width: 200px;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--tooltip-bg) transparent transparent transparent;
+}
+
+/* Fix text rendering in visualization */
+[data-theme="dark"] .node text {
+    fill: var(--text-primary);
+    stroke: none;
+}
+
+[data-theme="dark"] .node text.shadow {
+    stroke: var(--text-shadow-color);
+    stroke-width: 3px;
+    fill: none;
+}
+
+/* Fix node labels in visualization */
+[data-theme="dark"] .treemap-label {
+    fill: var(--text-primary);
+}
+
+/* Fix the visualization container in dark mode */
+[data-theme="dark"] .visualization-container {
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .visualization-content {
+    background-color: var(--background-color);
+}
+
+/* Dark mode adjustments for visualizer elements */
+[data-theme="dark"] .link {
+    stroke: var(--border-color);
+}
+
+[data-theme="dark"] .node-detail-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #visualization-info {
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* Fix expansion indicator */
+[data-theme="dark"] .expand-indicator {
+    fill: var(--text-primary);
+}
+
+/* Enhanced thinking indicator dark mode styles */
+[data-theme="dark"] #thinking-container {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .thinking-step {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .thinking-step.active {
+    background-color: rgba(var(--primary-color-rgb), 0.2);
+}
+
+[data-theme="dark"] .thinking-footer {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .thinking-time,
+[data-theme="dark"] .thinking-message {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .step-description {
+    color: var(--text-secondary);
+}
+
+/* Fix loading background in dark mode */
+[data-theme="dark"] .loading-bar {
+    background-color: var(--border-color);
+}
+
+[data-theme="dark"] .progress-percent {
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .loading-text {
+    color: var(--text-secondary);
+}
