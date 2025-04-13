@@ -22,7 +22,8 @@ A powerful tool for analyzing GitHub repositories using FAISS, RAG (Retrieval-Au
 
 ## Screenshots
 
-![Repository Analyzer UI](docs/screenshots/analyzer-ui.png)
+![Repository Analyzer UI](docs/screenshots/analyzer-ui1.png)
+![Repository Analyzer UI](docs/screenshots/analyzer-ui2.png)
 ![Code Dependency Visualization](docs/screenshots/dependency-viz.png)
 
 ## Installation
