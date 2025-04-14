@@ -3,6 +3,8 @@
 Simple build script for creating an installer for the GitHub Repository Analyzer.
 This script builds an installer that detects GPU availability at installation time.
 Run directly with: python build_installer.py
+
+WIP this does not work yet.
 """
 
 import os
