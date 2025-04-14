@@ -48,14 +48,6 @@ cd github-repo-analyzer
 poetry install
 ```
 
-3. Make sure your pyproject.toml includes the correct package definition:
-```toml
-[tool.poetry]
-packages = [
-    {include = "src"}
-]
-```
-
 ### Running the Application
 
 Run the desktop application:
