@@ -4,7 +4,7 @@ Desktop Application Launcher for GitHub Repository Analyzer
 This script launches the web app in a desktop window using pywebview
 and handles GPU/CPU configuration automatically.
 
-WIP this does not work yet
+WIP the installer portions do not work yet
 """
 
 import os
