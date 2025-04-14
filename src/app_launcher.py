@@ -326,7 +326,7 @@ def launch_app():
     
     # Start webview (blocks until window is closed)
     logger.info("Starting webview...")
-    webview.start(debug=True)
+    webview.start(debug=False)  # Changed debug from True to False
     logger.info("Webview closed")
 
 def create_installer():
