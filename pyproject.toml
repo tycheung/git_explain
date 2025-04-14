@@ -11,28 +11,38 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "flask (>=3.1.0,<4.0.0)",
     "gitpython (>=3.1.44,<4.0.0)",
-    "faiss-cpu (>=1.10.0,<2.0.0)",
+    "faiss-cpu (>=1.10.0,<2.0.0)",  # Base CPU version; will be dynamically replaced if GPU is available
     "numpy (>=2.2.4,<3.0.0)",
-    "torch (>=2.6.0,<3.0.0)",
+    "torch (>=2.6.0,<3.0.0)",       # Default PyTorch without CUDA
     "transformers (>=4.51.2,<5.0.0)",
     "sentence-transformers (>=4.0.2,<5.0.0)",
     "huggingface-hub (>=0.30.2,<0.31.0)",
-    "llama-cpp-python (>=0.3.8,<0.4.0)",
+    "llama-cpp-python (>=0.3.8,<0.4.0)",  # Base version
     "tqdm (>=4.67.1,<5.0.0)",
     "pyinstaller (>=6.12.0,<7.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
     "requests (>=2.32.3,<3.0.0)",
     "pywebview (>=5.4,<6.0)"
 ]
-
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
 black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.15.0"
-
+[tool.poetry.scripts]
+app = "src.app_launcher:launch_app"
+build_installer = "build_installer:main"
+install_gpu = "src.utils.gpu_setup:setup_gpu"  # New script to help set up GPU support
+[tool.poetry]
+packages = [
+    {include = "src"}
+]
+[tool.poetry.extras]
+gpu = [
+    "faiss-gpu",  # Replace faiss-cpu with GPU version when GPU is available
+]
+# Note: Both CPU and GPU dependencies will be included in the installer
+# The application will dynamically select the appropriate dependencies at runtime

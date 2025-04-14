@@ -10,6 +10,8 @@ A powerful tool for analyzing GitHub repositories using FAISS, RAG (Retrieval-Au
 - **Ask questions about the codebase** with a chat-like interface
 - **Uses Retrieval-Augmented Generation (RAG)** for accurate answers
 - **Leverages LLama.cpp** for efficient LLM inference
+- **Desktop Application** - Runs as a native desktop window, not just a website
+- **GPU Acceleration** - Automatically uses GPU for faster processing when available
 
 ### Advanced Features
 - **Repository Visualization** - View code dependencies and structure as interactive graphs
@@ -30,7 +32,7 @@ A powerful tool for analyzing GitHub repositories using FAISS, RAG (Retrieval-Au
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.12+
 - Poetry (dependency management)
 
 ### Setup
@@ -46,28 +48,40 @@ cd github-repo-analyzer
 poetry install
 ```
 
-### Installing Dependencies Manually
+3. Make sure your pyproject.toml includes the correct package definition:
+```toml
+[tool.poetry]
+packages = [
+    {include = "src"}
+]
+```
 
-If you prefer to add dependencies manually:
+### Running the Application
+
+Run the desktop application:
+```bash
+poetry run python src/app_launcher.py
+```
+
+This will launch the application in its own desktop window using pywebview, not just a website in a browser.
+
+## GPU Acceleration
+
+The application automatically detects if you have a compatible NVIDIA GPU with CUDA support and uses it for faster processing.
+
+### Enabling GPU Support Manually
+
+If you want to explicitly install GPU support:
 
 ```bash
-poetry add flask gitpython faiss-cpu numpy torch transformers sentence-transformers huggingface-hub llama-cpp-python tqdm pyinstaller requests httpx
-poetry add --group dev pytest black isort mypy
+# Run the GPU setup utility
+poetry run python src/utils/gpu_setup.py
 ```
 
-## Usage
-
-1. Run the application:
-```bash
-poetry run python src/main.py
-```
-
-2. Open your browser and navigate to:
-```
-http://127.0.0.1:5000
-```
-
-3. Enter a GitHub repository URL, clone it, and start asking questions!
+This utility will:
+1. Check if you have a compatible GPU
+2. Guide you through installing GPU-accelerated dependencies
+3. Configure the system for best performance
 
 ## Advanced Features Usage
 
@@ -93,15 +107,19 @@ http://127.0.0.1:5000
 2. Enter a personal access token to access private repositories
 3. The token will be securely stored in your browser's local storage
 
-## Building an Executable
+## TODO: Building and Installation
 
-You can build a standalone executable using PyInstaller:
+This section will outline the implementation of a cross-platform installation process:
 
-```bash
-poetry run pyinstaller github-repo-analyzer.spec
-```
-
-The executable will be created in the `dist` directory.
+- **Installer Creation**: Develop a build script that packages the application for different platforms (Windows, macOS, Linux)
+- **GPU Detection**: Implement automatic detection of CUDA-compatible GPUs during installation
+- **Dependency Management**: Bundle appropriate dependencies based on detected hardware
+- **User Interface**: Create a user-friendly installation wizard with:
+  - Custom installation location selection
+  - Desktop/Start Menu shortcut options
+  - Automatic environment configuration
+- **Cross-Platform Support**: Ensure consistent installation experience across operating systems
+- **Post-Installation**: Configure application for first run with optimal settings
 
 ## How It Works
 
@@ -121,6 +139,12 @@ The executable will be created in the `dist` directory.
 2. D3.js visualizations render the code structure and relationships
 3. Interactive elements allow exploration and filtering
 
+### Desktop Integration
+1. Flask server runs in the background
+2. PyWebView creates a native desktop window
+3. The window displays the Flask web application without browser controls
+4. Application data is stored in platform-appropriate locations
+
 ## Configuration
 
 You can modify the configuration in `src/config.py` to:
@@ -128,10 +152,6 @@ You can modify the configuration in `src/config.py` to:
 - Use a different LLM
 - Adjust FAISS parameters
 - Change data storage locations
-
-### TODO
-- Proper .exe bundling with pyinstaller; need to build an installer as opposed to a one file for this set up since it requires a lot of local files...etc for the LLM's, vectorizers...etc
-- Testing coverage
 
 ## License
 

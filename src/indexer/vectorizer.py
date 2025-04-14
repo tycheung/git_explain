@@ -1,5 +1,5 @@
 """
-Code vectorization module for embedding code chunks.
+Code vectorization module for embedding code chunks with GPU support.
 """
 from typing import List, Dict, Any
 import logging
@@ -60,7 +60,30 @@ class CodeVectorizer:
         self.model_loaded = False
         self.model_loading_lock = threading.Lock()
         self.operation_id = "vectorizer_model_loading"
+        self.gpu_available = False
         logger.info(f"CodeVectorizer initialized with model name: {model_name}")
+        
+    def _check_gpu_availability(self):
+        """Check if GPU is available for acceleration."""
+        try:
+            import torch
+            gpu_available = torch.cuda.is_available()
+            if gpu_available:
+                device_name = torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "Unknown"
+                logger.info(f"GPU is available for vectorization: {device_name}")
+                # Also check if we have enough VRAM (at least 2GB recommended for embedding models)
+                if torch.cuda.get_device_properties(0).total_memory >= 2 * 1024 * 1024 * 1024:
+                    logger.info(f"GPU has sufficient memory: {torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f} GB")
+                    return True
+                else:
+                    logger.warning(f"GPU has limited memory ({torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f} GB), may use CPU for stability")
+                    return False
+            else:
+                logger.info("No GPU available for vectorization, using CPU")
+                return False
+        except (ImportError, Exception) as e:
+            logger.warning(f"Error checking GPU availability: {e}")
+            return False
         
     def _patch_transformers_progress(self):
         """Patch transformers to use our progress callback."""
@@ -124,7 +147,11 @@ class CodeVectorizer:
             start_operation(self.operation_id, "Loading vectorizer model")
             
             try:
-                update_progress(self.operation_id, 0.1, "Initializing model loading...")
+                update_progress(self.operation_id, 0.05, "Checking GPU availability...")
+                # Check GPU availability
+                self.gpu_available = self._check_gpu_availability()
+                update_progress(self.operation_id, 0.1, 
+                               f"GPU acceleration {'available' if self.gpu_available else 'not available'}")
                 
                 # Try to patch transformers progress reporting
                 self._patch_transformers_progress()
@@ -152,8 +179,14 @@ class CodeVectorizer:
                 
                 logger.info("Setting up device (CPU/GPU)")
                 update_progress(self.operation_id, 0.9, "Setting up compute device...")
-                self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                logger.info(f"Using device: {self.device}")
+                
+                # Use GPU if available and model is small enough
+                if self.gpu_available:
+                    self.device = torch.device('cuda')
+                    logger.info(f"Using GPU device: {torch.cuda.get_device_name(0)}")
+                else:
+                    self.device = torch.device('cpu')
+                    logger.info("Using CPU device")
                 
                 self.model.to(self.device)
                 logger.info("Model loaded successfully")
@@ -189,8 +222,8 @@ class CodeVectorizer:
             metadata = code_chunks
             
             # Get embeddings
-            logger.info("Computing embeddings")
-            update_progress(operation_id, 0.2, "Computing embeddings...")
+            logger.info(f"Computing embeddings on {self.device}")
+            update_progress(operation_id, 0.2, f"Computing embeddings on {'GPU' if self.gpu_available else 'CPU'}...")
             embeddings = self._get_embeddings(texts, operation_id)
             logger.info(f"Embeddings computed, shape: {embeddings.shape}")
             
@@ -248,7 +281,8 @@ class CodeVectorizer:
         embeddings = []
         
         # Process in batches to avoid memory issues
-        batch_size = 8
+        # Use smaller batch size on CPU, larger on GPU
+        batch_size = 16 if self.gpu_available else 8
         logger.info(f"Processing {len(texts)} texts in batches of {batch_size}")
         
         for i in range(0, len(texts), batch_size):

@@ -42,3 +42,10 @@ build/
 .repos/
 .models/
 .indexes/
+
+# Generated build specific stuff
+Git_Explain_Setup.exe
+gpu_info.txt
+gpu_detector.nsh
+git_explain.spec
+installer.nsi

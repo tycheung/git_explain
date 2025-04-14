@@ -1,6 +1,6 @@
 """
 LLM (Large Language Model) module for generating responses using either 
-Transformers or llama.cpp.
+Transformers or llama.cpp with automatic GPU detection and fallback.
 """
 import os
 import logging
@@ -8,6 +8,7 @@ import threading
 import time
 import tempfile
 import httpx
+import platform
 from typing import List, Dict, Any
 from pathlib import Path
 
@@ -32,7 +33,57 @@ class LLMGenerator:
         self.model_loaded = False
         self.model_loading_lock = threading.Lock()
         self.operation_id = "llm_model_loading"
+        self.gpu_available = False
         logger.info(f"LLMGenerator initialized with model name: {model_name}, using llama.cpp: {use_llama_cpp}")
+    
+    def _check_gpu_availability(self):
+        """Check if GPU is available for acceleration."""
+        # Check if PyTorch CUDA is available
+        try:
+            import torch
+            torch_cuda = torch.cuda.is_available()
+            if torch_cuda:
+                logger.info(f"PyTorch CUDA is available: {torch.version.cuda}")
+                logger.info(f"GPU: {torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else 'Unknown'}")
+                return True
+        except (ImportError, Exception) as e:
+            logger.warning(f"Error checking PyTorch CUDA: {e}")
+            
+        # Check if llama-cpp has CUDA support
+        if self.use_llama_cpp:
+            try:
+                import llama_cpp
+                has_cublas = getattr(llama_cpp, "has_cublas", False)
+                if has_cublas:
+                    logger.info("llama-cpp-python has CUDA support")
+                    return True
+                else:
+                    logger.info("llama-cpp-python is installed without CUDA support")
+            except ImportError:
+                logger.warning("llama-cpp-python not detected or failed to import")
+                
+        # Check for NVIDIA GPU through system commands as a last resort
+        try:
+            if platform.system() == "Windows":
+                import subprocess
+                result = subprocess.run(
+                    ["powershell", "-Command", 
+                     "Get-WmiObject Win32_VideoController | Where-Object {$_.AdapterCompatibility -like '*NVIDIA*'}"],
+                    capture_output=True, text=True, check=True
+                )
+                if "NVIDIA" in result.stdout:
+                    logger.info("NVIDIA GPU detected but no CUDA support in libraries")
+                    return False
+            else:
+                result = subprocess.run(["nvidia-smi"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    logger.info("NVIDIA GPU detected but no CUDA support in libraries")
+                    return False
+        except:
+            pass
+            
+        logger.info("No GPU acceleration available")
+        return False
     
     def _load_model(self):
         """Lazy load the model only when needed"""
@@ -61,6 +112,11 @@ class LLMGenerator:
                 logger.info("Loading LLM model...")
                 update_progress(self.operation_id, 0.1, "Initializing model loading...")
                 
+                # Check GPU availability
+                self.gpu_available = self._check_gpu_availability()
+                update_progress(self.operation_id, 0.15, 
+                               f"GPU acceleration {'available' if self.gpu_available else 'not available'}")
+                
                 if self.use_llama_cpp:
                     logger.info("Initializing llama.cpp model")
                     update_progress(self.operation_id, 0.2, "Setting up llama.cpp...")
@@ -74,6 +130,13 @@ class LLMGenerator:
                     
                     update_progress(self.operation_id, 0.4, "Loading model weights...")
                     self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
+                    
+                    # Move model to GPU if available
+                    if self.gpu_available:
+                        update_progress(self.operation_id, 0.6, "Moving model to GPU...")
+                        import torch
+                        self.model = self.model.to(torch.device("cuda"))
+                        
                     logger.info("Transformers model initialized successfully")
                 
                 self.model_loaded = True
@@ -181,10 +244,16 @@ class LLMGenerator:
                     logger.info("Initializing Llama model from local file")
                     update_progress(self.operation_id, 0.6, "Loading model into memory...")
                     from llama_cpp import Llama
+                    
+                    # Use GPU if available and supported by the library
+                    n_gpu_layers = -1 if self.gpu_available else 0
+                    logger.info(f"Using n_gpu_layers={n_gpu_layers} for llama.cpp")
+                    
                     llm = Llama(
                         model_path=model_path,
-                        n_ctx=4096,  # Context window size
-                        n_gpu_layers=-1  # Use GPU if available
+                        n_ctx=4096,             # Context window size
+                        n_gpu_layers=n_gpu_layers,  # -1 means use all layers on GPU if available
+                        verbose=self.gpu_available  # Enable verbose output to see GPU usage info
                     )
                     update_progress(self.operation_id, 0.9, "Model loaded into memory")
                     return llm
@@ -238,10 +307,16 @@ class LLMGenerator:
             update_progress(self.operation_id, 0.8, "Download complete, loading model...")
             
             from llama_cpp import Llama
+            
+            # Use GPU if available and supported by the library
+            n_gpu_layers = -1 if self.gpu_available else 0
+            logger.info(f"Using n_gpu_layers={n_gpu_layers} for llama.cpp")
+            
             llm = Llama(
                 model_path=model_path,
                 n_ctx=4096,
-                n_gpu_layers=-1
+                n_gpu_layers=n_gpu_layers,
+                verbose=self.gpu_available  # Enable verbose output to see GPU usage info
             )
             
             update_progress(self.operation_id, 0.95, "Model loaded into memory")
@@ -279,11 +354,11 @@ class LLMGenerator:
             # Generate response
             if self.use_llama_cpp:
                 logger.info("Generating response with llama.cpp")
-                update_progress(generation_id, 0.3, "Generating response with LLaMA...")
+                update_progress(generation_id, 0.3, f"Generating response with LLaMA {'with GPU acceleration' if self.gpu_available else 'on CPU'}...")
                 response = self._generate_with_llama_cpp(prompt)
             else:
                 logger.info("Generating response with Transformers")
-                update_progress(generation_id, 0.3, "Generating response with Transformers...")
+                update_progress(generation_id, 0.3, f"Generating response with Transformers {'on GPU' if self.gpu_available else 'on CPU'}...")
                 response = self._generate_with_transformers(prompt)
                 
             logger.info(f"Generated response of length: {len(response)}")
@@ -335,6 +410,12 @@ Answer:
     def _generate_with_transformers(self, prompt: str) -> str:
         """Generate a response using Transformers."""
         inputs = self.tokenizer(prompt, return_tensors="pt")
+        
+        # Move inputs to GPU if available
+        if self.gpu_available:
+            import torch
+            inputs = {k: v.to("cuda") for k, v in inputs.items()}
+            
         outputs = self.model.generate(
             inputs["input_ids"],
             max_length=len(inputs["input_ids"][0]) + 2048,
